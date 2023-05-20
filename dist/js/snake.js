@@ -1,0 +1,127 @@
+// 遊戲板的寬度和高度
+const boardSize = 20;
+const cellSize = 20;
+
+// 貪食蛇的初始位置和初始方向
+let snake = [{ x: 10, y: 10 }];
+let direction = "right";
+
+// 食物的初始位置
+let food = { x: 15, y: 10 };
+
+// 獲取遊戲板的canvas元素
+const canvas = document.getElementById("game-board");
+const ctx = canvas.getContext("2d");
+
+// 初始化遊戲板
+function createGameBoard() {
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+// 繪製遊戲板上的貪食蛇
+function drawSnake() {
+    ctx.fillStyle = "#000";
+
+    snake.forEach(snakePart => {
+        ctx.fillRect(snakePart.x * cellSize, snakePart.y * cellSize, cellSize, cellSize);
+    });
+}
+
+// 繪製食物
+function drawFood() {
+    ctx.fillStyle = "#f00";
+    ctx.fillRect(food.x * cellSize, food.y * cellSize, cellSize, cellSize);
+}
+
+// 更新遊戲板上的貪食蛇位置
+function updateSnake() {
+    const snakeHead = { x: snake[0].x, y: snake[0].y };
+
+    // 根據方向移動貪食蛇的頭部位置
+    if (direction === "up") {
+        snakeHead.y--;
+    } else if (direction === "down") {
+        snakeHead.y++;
+    } else if (direction === "left") {
+        snakeHead.x--;
+    } else if (direction === "right") {
+        snakeHead.x++;
+    }
+
+    // 將新的頭部位置插入到貪食蛇陣列的第一個位置
+    snake.unshift(snakeHead);
+
+    // 檢查是否吃到食物
+    if (snakeHead.x === food.x && snakeHead.y === food.y) {
+        // 隨機生成新的食物位置
+        food = generateFoodPosition();
+    } else {
+        // 移除貪食蛇尾部的位置
+        snake.pop();
+    }
+}
+
+// 檢查貪食蛇是否碰到自己或牆壁
+function checkCollision() {
+    const snakeHead = snake[0];
+
+    // 檢查是否碰到牆壁
+    if (snakeHead.x < 0 || snakeHead.x >= boardSize || snakeHead.y < 0 || snakeHead.y >= boardSize) {
+        // 重置遊戲
+        resetGame();
+        return;
+    }
+
+    // 檢查是否碰到自己的身體
+    for (let i = 1; i < snake.length; i++) {
+        if (snake[i].x === snakeHead.x && snake[i].y === snakeHead.y) {
+            // 重置遊戲
+            resetGame();
+            return;
+        }
+    }
+}
+
+// 重置遊戲
+function resetGame() {
+    snake = [{ x: 10, y: 10 }];
+    direction = "right";
+    food = generateFoodPosition();
+}
+
+// 隨機生成食物位置
+function generateFoodPosition() {
+    return {
+        x: Math.floor(Math.random() * boardSize),
+        y: Math.floor(Math.random() * boardSize)
+    };
+}
+
+// 處理按鍵事件，改變貪食蛇的移動方向
+document.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowUp" && direction !== "down") {
+        direction = "up";
+    } else if (event.key === "ArrowDown" && direction !== "up") {
+        direction = "down";
+    } else if (event.key === "ArrowLeft" && direction !== "right") {
+        direction = "left";
+    } else if (event.key === "ArrowRight" && direction !== "left") {
+        direction = "right";
+    }
+});
+
+// 遊戲循環
+function gameLoop() {
+    createGameBoard();
+    updateSnake();
+    checkCollision();
+    drawSnake();
+    drawFood();
+
+    // 每隔一段時間執行一次遊戲循環
+    setTimeout(gameLoop, 200);
+}
+
+// 開始遊戲
+gameLoop();
